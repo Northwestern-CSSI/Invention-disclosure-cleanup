@@ -1,0 +1,45 @@
+# Ignore all PDF files
+*.pdf
+**/*.pdf
+
+# Python cache files
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Keep data directory structure but ignore contents
+data/raw/*
+data/disclosure/*
+data/desensitized/*
+
+# But keep the directories themselves with .gitkeep
+!data/raw/.gitkeep
+!data/disclosure/.gitkeep
+!data/desensitized/.gitkeep
+
+# IDE files
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS specific files
+.DS_Store
+Thumbs.db
