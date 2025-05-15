@@ -156,7 +156,7 @@ def batch_process_pdfs(input_dir, output_dir):
     print(f"Completed processing {processed_count} files")
 
 if __name__ == "__main__":
-    # Example usage
-    input_dir = "data/before"
-    output_dir = "data/after"
+    # Paths for processing
+    input_dir = "data/disclosure"
+    output_dir = "data/desensitized"
     batch_process_pdfs(input_dir, output_dir)
