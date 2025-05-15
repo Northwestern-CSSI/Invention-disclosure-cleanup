@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # PDF Extraction Tool
 
 This tool is designed to process PDF files, specifically to identify and extract technology disclosure forms.
@@ -50,3 +51,6 @@ pip install PyPDF2
 
 - PDF files are excluded from version control via .gitignore
 - The script uses a fuzzy search approach to identify disclosure forms, looking for the keywords on the same line or anywhere in the first page
+=======
+# UChicago-Disclosure
+>>>>>>> ddbb7b971197a8e5b4c214bb6273f23ee0859c08
