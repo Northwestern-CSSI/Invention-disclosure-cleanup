@@ -182,12 +182,12 @@ def find_pdf_files(directory):
         pdf_files.append(str(file_path))
     return pdf_files
 
-def process_pdfs(disclosure_dir, text_dir, output_dir):
+def process_pdfs(disclosure_dir, disclosure_text_dir, output_dir):
     """Process PDFs and extract text before the section marker."""
     print(f"Starting content extraction from {disclosure_dir}...")
     
     # Create output directories
-    os.makedirs(text_dir, exist_ok=True)
+    os.makedirs(disclosure_text_dir, exist_ok=True)
     os.makedirs(output_dir, exist_ok=True)
     
     # Get all PDF files in disclosure directory and subdirectories
@@ -200,34 +200,33 @@ def process_pdfs(disclosure_dir, text_dir, output_dir):
     
     # Process each PDF with progress bar
     for pdf_path in tqdm(pdf_files, desc="Extracting content", unit="file"):
-        filename = os.path.basename(pdf_path)
+        txt_filename = pdf_path.replace(disclosure_dir, disclosure_text_dir).replace(".pdf", ".txt")
+
         text = extract_text_until_section(pdf_path)
         
         if text:
             # Save to DataFrame
             data.append({
-                'filename': filename,
+                'filename': txt_filename,
                 'text': text
             })
-            
-            # Create text file output
-            base_name = Path(filename).stem
-            txt_filename = os.path.join(text_dir, f"{base_name}.txt")
-            
+
+            # Ensure the directory exists for the text file
+            os.makedirs(os.path.dirname(txt_filename), exist_ok=True)
+
             with open(txt_filename, 'w', encoding='utf-8') as f:
                 f.write(text)
     
     # Create DataFrame
     df = pd.DataFrame(data)
     print(f"Extracted content from {len(data)} files")
-    
     return df
 
 def parse_args():
     """Parse command line arguments."""
     parser = argparse.ArgumentParser(description="Extract content from disclosure forms")
-    parser.add_argument("--disclosure-dir", default="data/disclosure", help="Directory containing disclosure forms")
-    parser.add_argument("--text-dir", default="data/extracted_text", help="Directory to save extracted text files")
+    parser.add_argument("--disclosure-dir", default="data/invention_disclosure", help="Directory containing disclosure forms")
+    parser.add_argument("--disclosure-text-dir", default="data/invention_disclosure_txt", help="Directory to save extracted text files")
     parser.add_argument("--output-dir", default="data", help="Directory to save output parquet and CSV files")
     return parser.parse_args()
 
@@ -236,16 +235,9 @@ if __name__ == "__main__":
     args = parse_args()
     
     # Process PDFs and get DataFrame
-    df = process_pdfs(args.disclosure_dir, args.text_dir, args.output_dir)
-    
-    # Save as both parquet and CSV for flexibility
-    output_parquet = os.path.join(args.output_dir, "disclosure_content.parquet")
-    df.to_parquet(output_parquet, index=False)
-    print(f"Saved content to {output_parquet}")
-    
-    output_csv = os.path.join(args.output_dir, "disclosure_content.csv")
-    df.to_csv(output_csv, index=False)
-    print(f"Saved content to {output_csv}")
+    df = process_pdfs(args.disclosure_dir, args.disclosure_text_dir, args.output_dir)
+
+    df.to_parquet(os.path.join(args.output_dir, "all_extracted_texts.parquet"), index=False)
     
     # Print sample information
     print(f"\nDataFrame shape: {df.shape}")
@@ -255,5 +247,5 @@ if __name__ == "__main__":
             print(f"  - {filename}")
         
         # Print text file output info
-        txt_files = glob.glob(os.path.join(args.text_dir, "*.txt"))
-        print(f"\nCreated {len(txt_files)} text files in {args.text_dir}")
+        txt_files = glob.glob(os.path.join(args.disclosure_text_dir, "**/*.txt"))
+        print(f"\nCreated {len(txt_files)} text files in {args.disclosure_text_dir}")

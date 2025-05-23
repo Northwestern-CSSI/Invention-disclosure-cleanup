@@ -9,17 +9,21 @@ pdf-extraction/
 │
 ├── 00-select-disclosure.py - Script to identify and copy disclosure forms
 ├── 01-extract-content.py - Script to extract and export content before specific section
-├── 02-desensitize-disclosure.py - Script to remove sensitive information from forms
 ├── run.sh - Shell script to run the complete workflow
 ├── requirements.txt - Required Python packages
 │
-├── data/
-│   ├── raw/                - Directory for original PDF files
-│   ├── disclosure/         - Directory for identified disclosure forms
-│   ├── extracted_text/     - Directory for individual text files
-│   ├── desensitized/       - Directory for processed, desensitized data
-│   ├── disclosure_content.parquet - Parquet file with extracted content
-│   └── disclosure_content.csv - CSV file with extracted content
+├── raw/ (INPUT)            - Directory for original PDF files organized in subdirectories
+│   ├── XX-T-XXX/
+│   │   ├── InventionDisclosureXXX.pdf
+│   │   └── Other non-sensitive files
+│   ├── XX-T-XXX/
+│       ├── ...
+│
+├── data/ (GENERATED OUTPUT)
+│   ├── invention_disclosure/     - Identified disclosure forms (PDFs)
+│   ├── invention_disclosure_text/ - Extracted text files without sensitive information (.txt)
+│   ├── supplementary_information/ - Non-disclosure documents (PDFs)
+│   └── all_extracted_texts.parquet - Consolidated extracted content (same to `invention_disclosure_text`)
 │
 └── README.md               - This file
 ```
@@ -28,21 +32,15 @@ pdf-extraction/
 
 ### 00-select-disclosure.py
 
-This script processes PDF files in the `data/raw` directory and its subdirectories, looking for technology disclosure forms by searching for specific keywords ("TECHNOLOGY", "DISCLOSURE", "FORM") in the first page of each PDF. When it identifies a disclosure form, it copies the file to the `data/disclosure` directory.
-
-#### Usage
-
-```bash
-python 00-select-disclosure.py [--raw-dir PATH] [--disclosure-dir PATH]
-```
+This script processes PDF files in the `raw` directory and its subdirectories, looking for technology disclosure forms by searching for specific keywords ("TECHNOLOGY", "DISCLOSURE", "FORM") in the first page of each PDF. When it identifies a disclosure form, it copies the file to the `data/invention_disclosure` directory, and other documents to the `data/supplementary_information` directory.
 
 ### 01-extract-content.py
 
-This script extracts text content from disclosure forms up to the section marker "III. ADDITIONAL INFORMATION & SUPPORTING DOCUMENTS". It processes all PDFs in the `data/disclosure` directory and its subdirectories, and:
+This script extracts text content from disclosure forms up to the section marker "III. ADDITIONAL INFORMATION & SUPPORTING DOCUMENTS". It processes all PDFs in the `data/invention_disclosure` directory and its subdirectories, and:
 
-1. Exports individual text files to the `data/extracted_text` directory
+1. Exports individual text files to the `data/invention_disclosure_text` directory
 2. Creates a pandas DataFrame with the extracted content
-3. Saves the DataFrame as both parquet and CSV formats
+3. Saves the DataFrame as `all_extracted_texts.parquet`
 
 The script uses highly advanced adaptive matching techniques:
 
@@ -66,28 +64,6 @@ The script uses highly advanced adaptive matching techniques:
    - Tries multiple approaches in sequence, from most precise to most general
    - Adapts to different document structures and formatting styles
 
-#### Usage
-
-```bash
-python 01-extract-content.py [--disclosure-dir PATH] [--text-dir PATH] [--output-dir PATH]
-```
-
-### 02-desensitize-disclosure.py
-
-This script processes PDF files in the disclosure directory and its subdirectories, removing sensitive personal information by identifying and removing pages that contain signature sections, contributor information, and other sensitive data. It saves the desensitized versions to the `data/desensitized` directory.
-
-The script uses multiple approaches to identify sensitive content:
-- Exact phrase matching
-- Regex pattern matching
-- Keyword combination scoring
-- Heuristic approaches based on document structure
-
-#### Usage
-
-```bash
-python 02-desensitize-disclosure.py [--disclosure-dir PATH] [--desensitized-dir PATH]
-```
-
 ## Requirements
 
 - Python 3.x
@@ -96,50 +72,49 @@ python 02-desensitize-disclosure.py [--disclosure-dir PATH] [--desensitized-dir 
 - pyarrow (version 12.0.0 or higher)
 - tqdm
 
-## Installation
-
-```bash
-pip install -r requirements.txt
-```
-
 ## Data Directory Structure
 
-- `data/raw`: Place original PDF files here for processing
-- `data/disclosure`: Contains identified disclosure forms
-- `data/extracted_text`: Contains individual text files with extracted content
-- `data/disclosure_content.parquet`: Parquet file with extracted content
-- `data/disclosure_content.csv`: CSV file with extracted content
-- `data/desensitized`: Contains desensitized versions of disclosure forms
+### Input Directory
+- `raw/` (INPUT): Place original PDF files here organized in subdirectories
+  - Example: `raw/02-T-019/`, `raw/02-T-020/`, etc.
+  - Contains mixed document types: disclosure forms and supplementary documents
+
+### Generated Output Directories
+- `data/invention_disclosure/` (GENERATED): Identified disclosure forms (PDF files)
+  - Contains only PDFs identified as invention disclosure forms
+  - Maintains original subdirectory structure from raw/
+- `data/invention_disclosure_text/` (GENERATED): Extracted text files (.txt)
+  - Contains text content extracted from disclosure forms
+  - One .txt file per disclosure PDF, preserving directory structure
+- `data/supplementary_information/` (GENERATED): Non-disclosure documents (PDF files)
+  - Contains PDFs that were not identified as disclosure forms
+  - Research papers, supporting documents, etc.
+- `data/all_extracted_texts.parquet` (GENERATED): Consolidated extracted content
+  - Parquet file containing all extracted text content in tabular format
+  - Includes metadata like file paths and directory structure
 
 ## Running the Complete Workflow
 
 Use the provided shell script to run the complete workflow:
 
 ```bash
-./run.sh [--base-dir PATH] [--raw-dir PATH] [--disclosure-dir PATH] [--text-dir PATH] [--desensitized-dir PATH]
+./run.sh
 ```
 
-Options:
-- `--base-dir`: Set the base directory for all operations (default: `data`)
-- `--raw-dir`: Set the directory for raw PDF files (default: `data/raw`)
-- `--disclosure-dir`: Set the directory for identified disclosure forms (default: `data/disclosure`)
-- `--text-dir`: Set the directory for extracted text files (default: `data/extracted_text`)
-- `--desensitized-dir`: Set the directory for desensitized forms (default: `data/desensitized`)
-
 This will:
-1. Check and install dependencies
-2. Create the necessary directory structure
-3. Identify disclosure forms in raw PDFs (including subdirectories)
-4. Extract content from disclosure forms and save to:
-   - Individual text files in the specified text directory
-   - Parquet and CSV files for tabular access in the specified output directory
-5. Desensitize the identified disclosure forms
+1. Install required dependencies
+2. Identify disclosure forms in raw PDFs and categorize them:
+   - Disclosure forms → `data/invention_disclosure/`
+   - Other documents → `data/supplementary_information/`
+3. Extract content from disclosure forms and save to:
+   - Individual text files in `data/invention_disclosure_text/`
+   - Consolidated parquet file: `data/all_extracted_texts.parquet`
 
 ## Notes
 
 - PDF files are excluded from version control via .gitignore
 - The script recursively searches directories using `**/*.pdf` pattern to find PDFs in subdirectories
 - The script uses a fuzzy search approach to identify disclosure forms, looking for the keywords on the same line or anywhere in the first page
+- Documents not identified as disclosure forms are categorized as supplementary information
 - The content extraction uses highly adaptive pattern matching to handle messy PDF text extraction
 - The content extraction stops at the "III. ADDITIONAL INFORMATION & SUPPORTING DOCUMENTS" section or similar markers, using multiple strategies to identify this boundary
-- The desensitization process includes multiple fallback mechanisms to ensure sensitive content is removed even when exact markers cannot be found
