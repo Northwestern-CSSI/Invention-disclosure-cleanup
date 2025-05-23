@@ -28,11 +28,15 @@ wheels/
 data/raw/*
 data/disclosure/*
 data/desensitized/*
+data/extracted_text/*
+data/disclosure_content.parquet
+data/disclosure_content.csv
 
 # But keep the directories themselves with .gitkeep
 !data/raw/.gitkeep
 !data/disclosure/.gitkeep
 !data/desensitized/.gitkeep
+!data/extracted_text/.gitkeep
 
 # IDE files
 .idea/
