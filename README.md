@@ -28,17 +28,17 @@ pdf-extraction/
 
 ### 00-select-disclosure.py
 
-This script processes PDF files in the `data/raw` directory, looking for technology disclosure forms by searching for specific keywords ("TECHNOLOGY", "DISCLOSURE", "FORM") in the first page of each PDF. When it identifies a disclosure form, it copies the file to the `data/disclosure` directory.
+This script processes PDF files in the `data/raw` directory and its subdirectories, looking for technology disclosure forms by searching for specific keywords ("TECHNOLOGY", "DISCLOSURE", "FORM") in the first page of each PDF. When it identifies a disclosure form, it copies the file to the `data/disclosure` directory.
 
 #### Usage
 
 ```bash
-python 00-select-disclosure.py
+python 00-select-disclosure.py [--raw-dir PATH] [--disclosure-dir PATH]
 ```
 
 ### 01-extract-content.py
 
-This script extracts text content from disclosure forms up to the section marker "III. ADDITIONAL INFORMATION & SUPPORTING DOCUMENTS". It processes all PDFs in the `data/disclosure` directory and:
+This script extracts text content from disclosure forms up to the section marker "III. ADDITIONAL INFORMATION & SUPPORTING DOCUMENTS". It processes all PDFs in the `data/disclosure` directory and its subdirectories, and:
 
 1. Exports individual text files to the `data/extracted_text` directory
 2. Creates a pandas DataFrame with the extracted content
@@ -69,12 +69,12 @@ The script uses highly advanced adaptive matching techniques:
 #### Usage
 
 ```bash
-python 01-extract-content.py
+python 01-extract-content.py [--disclosure-dir PATH] [--text-dir PATH] [--output-dir PATH]
 ```
 
 ### 02-desensitize-disclosure.py
 
-This script processes PDF files in the disclosure directory and removes sensitive personal information by identifying and removing pages that contain signature sections, contributor information, and other sensitive data. It saves the desensitized versions to the `data/desensitized` directory.
+This script processes PDF files in the disclosure directory and its subdirectories, removing sensitive personal information by identifying and removing pages that contain signature sections, contributor information, and other sensitive data. It saves the desensitized versions to the `data/desensitized` directory.
 
 The script uses multiple approaches to identify sensitive content:
 - Exact phrase matching
@@ -85,7 +85,7 @@ The script uses multiple approaches to identify sensitive content:
 #### Usage
 
 ```bash
-python 02-desensitize-disclosure.py
+python 02-desensitize-disclosure.py [--disclosure-dir PATH] [--desensitized-dir PATH]
 ```
 
 ## Requirements
@@ -116,21 +116,29 @@ pip install -r requirements.txt
 Use the provided shell script to run the complete workflow:
 
 ```bash
-./run.sh
+./run.sh [--base-dir PATH] [--raw-dir PATH] [--disclosure-dir PATH] [--text-dir PATH] [--desensitized-dir PATH]
 ```
+
+Options:
+- `--base-dir`: Set the base directory for all operations (default: `data`)
+- `--raw-dir`: Set the directory for raw PDF files (default: `data/raw`)
+- `--disclosure-dir`: Set the directory for identified disclosure forms (default: `data/disclosure`)
+- `--text-dir`: Set the directory for extracted text files (default: `data/extracted_text`)
+- `--desensitized-dir`: Set the directory for desensitized forms (default: `data/desensitized`)
 
 This will:
 1. Check and install dependencies
 2. Create the necessary directory structure
-3. Identify disclosure forms in raw PDFs
+3. Identify disclosure forms in raw PDFs (including subdirectories)
 4. Extract content from disclosure forms and save to:
-   - Individual text files in `data/extracted_text`
-   - Parquet and CSV files for tabular access
+   - Individual text files in the specified text directory
+   - Parquet and CSV files for tabular access in the specified output directory
 5. Desensitize the identified disclosure forms
 
 ## Notes
 
 - PDF files are excluded from version control via .gitignore
+- The script recursively searches directories using `**/*.pdf` pattern to find PDFs in subdirectories
 - The script uses a fuzzy search approach to identify disclosure forms, looking for the keywords on the same line or anywhere in the first page
 - The content extraction uses highly adaptive pattern matching to handle messy PDF text extraction
 - The content extraction stops at the "III. ADDITIONAL INFORMATION & SUPPORTING DOCUMENTS" section or similar markers, using multiple strategies to identify this boundary

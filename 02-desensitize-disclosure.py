@@ -1,6 +1,7 @@
 import os
 import re
 import PyPDF2
+import argparse
 from pathlib import Path
 import signal
 from tqdm import tqdm
@@ -119,19 +120,28 @@ def process_pdf(input_path, output_path):
                 writer.write(output_file)
                 
         return True
-    except Exception:
+    except Exception as e:
+        print(f"Error processing {input_path}: {str(e)}")
         return False
+
+def find_pdf_files(directory):
+    """Find all PDF files in a directory and its subdirectories."""
+    pdf_files = []
+    # Use Path.rglob for recursive glob pattern matching
+    for file_path in Path(directory).rglob("*.pdf"):
+        pdf_files.append(file_path)
+    return pdf_files
 
 def batch_process_pdfs(input_dir, output_dir):
     """Process all PDF files in the input directory."""
-    print("Starting desensitization process...")
+    print(f"Starting desensitization process from {input_dir}...")
     
     input_path = Path(input_dir)
     output_path = Path(output_dir)
     output_path.mkdir(exist_ok=True, parents=True)
     
-    # Get list of all PDF files
-    pdf_files = list(input_path.glob('*.pdf'))
+    # Get list of all PDF files (recursively)
+    pdf_files = find_pdf_files(input_dir)
     total_files = len(pdf_files)
     print(f"Found {total_files} PDF files to process")
     
@@ -145,8 +155,16 @@ def batch_process_pdfs(input_dir, output_dir):
     
     print(f"Completed: {processed_count}/{total_files} files processed")
 
+def parse_args():
+    """Parse command line arguments."""
+    parser = argparse.ArgumentParser(description="Desensitize disclosure forms")
+    parser.add_argument("--disclosure-dir", default="data/disclosure", help="Directory containing disclosure forms")
+    parser.add_argument("--desensitized-dir", default="data/desensitized", help="Directory to save desensitized forms")
+    return parser.parse_args()
+
 if __name__ == "__main__":
-    # Paths for processing
-    input_dir = "data/disclosure"
-    output_dir = "data/desensitized"
-    batch_process_pdfs(input_dir, output_dir)
+    # Parse command line arguments
+    args = parse_args()
+    
+    # Process PDFs
+    batch_process_pdfs(args.disclosure_dir, args.desensitized_dir)
