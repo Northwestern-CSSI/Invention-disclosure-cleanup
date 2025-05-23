@@ -24,19 +24,13 @@ wheels/
 .installed.cfg
 *.egg
 
-# Keep data directory structure but ignore contents
-data/raw/*
-data/disclosure/*
-data/desensitized/*
-data/extracted_text/*
-data/disclosure_content.parquet
-data/disclosure_content.csv
-
-# But keep the directories themselves with .gitkeep
-!data/raw/.gitkeep
-!data/disclosure/.gitkeep
-!data/desensitized/.gitkeep
-!data/extracted_text/.gitkeep
+# Ignore all generated data files
+data/invention_disclosure/
+data/invention_disclosure_text/
+data/supplementary_information/
+data/*.parquet
+*.txt
+raw/
 
 # IDE files
 .idea/
