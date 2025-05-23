@@ -30,7 +30,11 @@ data/invention_disclosure_text/
 data/supplementary_information/
 data/*.parquet
 *.txt
-raw/
+
+# Ignore raw directory contents but keep structure
+raw/**/*.pdf
+raw/**/*.txt
+!raw/*/.gitkeep
 
 # IDE files
 .idea/
