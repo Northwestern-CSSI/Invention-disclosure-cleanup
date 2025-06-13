@@ -66,7 +66,7 @@ def process_pdfs(raw_dir, disclosure_dir, supplementary_dir):
 def parse_args():
     """Parse command line arguments."""
     parser = argparse.ArgumentParser(description="Classify PDF files into invention disclosures and supplementary documents")
-    parser.add_argument("--raw-dir", default="data/raw", help="Directory containing raw PDF files")
+    parser.add_argument("--raw-dir", default="raw", help="Directory containing raw PDF files")
     parser.add_argument("--disclosure-dir", default="data/invention_disclosure", 
                        help="Directory to save invention disclosure forms")
     parser.add_argument("--supplementary-dir", default="data/supplementary", 

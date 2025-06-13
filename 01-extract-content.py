@@ -144,23 +144,23 @@ def extract_text_until_section(pdf_path):
                             return ""
             
             # 4. Try structural analysis - look for consistent section numbering
-            section_matches = re.finditer(r'(?:^|\n|\s+)(?:(?:I|II|III|IV|V)|(?:1|2|3|4|5))\.?\s+[A-Z]', full_text, re.MULTILINE)
-            section_positions = [match.start() for match in section_matches]
+            # section_matches = re.finditer(r'(?:^|\n|\s+)(?:(?:I|II|III|IV|V)|(?:1|2|3|4|5))\.?\s+[A-Z]', full_text, re.MULTILINE)
+            # section_positions = [match.start() for match in section_matches]
             
-            if len(section_positions) >= 3:  # We have at least 3 sections
-                # Look for the third section (which would be section III or 3)
-                # But first, verify these appear to be actual sections (reasonable spacing between them)
-                diffs = [section_positions[i+1] - section_positions[i] for i in range(len(section_positions)-1)]
-                median_diff = sorted(diffs)[len(diffs)//2]
+            # if len(section_positions) >= 3:  # We have at least 3 sections
+            #     # Look for the third section (which would be section III or 3)
+            #     # But first, verify these appear to be actual sections (reasonable spacing between them)
+            #     diffs = [section_positions[i+1] - section_positions[i] for i in range(len(section_positions)-1)]
+            #     median_diff = sorted(diffs)[len(diffs)//2]
                 
-                if median_diff > 100:  # Reasonable section size
-                    # The third section position
-                    if len(section_positions) >= 3:
-                        third_section_pos = section_positions[2]
-                        return full_text[:third_section_pos].strip()
+            #     if median_diff > 100:  # Reasonable section size
+            #         # The third section position
+            #         if len(section_positions) >= 3:
+            #             third_section_pos = section_positions[2]
+            #             return full_text[:third_section_pos].strip()
             
             # If we couldn't find a clear marker, default to returning the full text
-            return full_text.strip()
+            return None
     
     except Exception as e:
         print(f"Error processing {pdf_path}: {str(e)}")
@@ -201,18 +201,17 @@ def process_pdfs(disclosure_dir, disclosure_text_dir, output_dir):
     # Process each PDF with progress bar
     for pdf_path in tqdm(pdf_files, desc="Extracting content", unit="file"):
         txt_filename = pdf_path.replace(disclosure_dir, disclosure_text_dir).replace(".pdf", ".txt")
+        # Ensure the directory exists for the text file
+        os.makedirs(os.path.dirname(txt_filename), exist_ok=True)
 
         text = extract_text_until_section(pdf_path)
-        
+
         if text:
             # Save to DataFrame
             data.append({
                 'filename': txt_filename,
                 'text': text
             })
-
-            # Ensure the directory exists for the text file
-            os.makedirs(os.path.dirname(txt_filename), exist_ok=True)
 
             with open(txt_filename, 'w', encoding='utf-8') as f:
                 f.write(text)
