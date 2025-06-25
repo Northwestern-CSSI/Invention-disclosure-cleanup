@@ -1,0 +1,47 @@
+# Ignore all PDF files
+*.pdf
+**/*.pdf
+
+# Python cache files
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Ignore all generated data files
+data/invention_disclosure/
+data/invention_disclosure_text/
+data/supplementary_information/
+data/*.parquet
+*.txt
+
+# Ignore raw directory contents but keep structure
+raw/**/*.pdf
+raw/**/*.txt
+!raw/*/.gitkeep
+
+# IDE files
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS specific files
+.DS_Store
+Thumbs.db
